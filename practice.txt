@@ -1,0 +1,177 @@
+(async() => {
+    try {
+        let colorsArray = [
+            {name: 'blue'},
+            {name: 'purple'},
+            {name: 'red'},
+            {name: 'green'},
+            {name: 'yellow'},
+        ];
+        let colors = firebaseDB.collection('colors')  
+        for (const elem of colorsArray) {
+            // await colors.doc().set(elem);
+        }    
+    
+        let res = await colors.get();
+        let dataFirebase = [];
+        res.forEach(elem => {
+            dataFirebase.push({id: elem.id, ...elem.data()});
+            console.log({id: elem.id, ...elem.data()})
+        });
+
+        dataFirebase.forEach(async elem => {
+            if(elem.name == "green"){
+                await colors.doc(elem.id).delete();
+            }
+        })
+        // console.log(res);
+        // let new_user = new usersModel({ name: 'Daniel', surname: 'Gallo', dni: '37923460'});
+        // new_user.save();
+
+        // let res_A = await usersModel.find();
+        // console.log(res_A);
+    } catch (error) {
+        console.log(error)
+    }
+})();
+
+const students = [
+    { name: 'Pedro', surname: 'Mei', age: 21, dni: '31155898', course: '1A', score: 7 },
+    { name: 'Ana', surname: 'Gonzalez', age: 32, dni: '27651878', course: '1A', score: 8 },
+    { name: 'José', surname: 'Picos', age: 29, dni: '34554398', course: '2A', score: 6 },
+    { name: 'Lucas', surname: 'Blanco', age: 22, dni: '30355874', course: '3A', score: 10 },
+    { name: 'María', surname: 'García', age: 36, dni: '29575148', course: '1A', score: 9 },
+    { name: 'Federico', surname: 'Perez', age: 41, dni: '320118321', course: '2A', score: 5 },
+    { name: 'Tomas', surname: 'Sierra', age: 19, dni: '38654790', course: '2B', score: 4 },
+    { name: 'Carlos', surname: 'Fernández', age: 33, dni: '26935670', course: '3B', score: 2 },
+    { name: 'Fabio', surname: 'Pieres', age: 39, dni: '4315388', course: '1B', score: 9 },
+    { name: 'Daniel', surname: 'Gallo', age: 25, dni: '37923460', course: '3B', score: 2 }
+];
+
+//PUNTO 1
+(async ()=>{
+    try {
+        const insertions = [];
+        for (const student of students) {
+            insertions.push(studentsModel.create(student));
+        }
+        const result = await Promise.allSettled(insertions)
+        let rejected = result.filter(elem => elem.status == "rejected")
+        console.log(result);
+        console.log("------------");
+        if(rejected.length > 0){
+            console.log("something failed");
+        }else {
+            console.log("all ok")
+        }
+    } catch (error) {
+        console.log(error)
+    }
+});
+
+// PUNTO 1 EJ 2
+
+(async ()=>{
+    try {
+        //PUNTO A
+        let res_A = await studentsModel.find({}).sort({name: 1});
+        //console.log(res_A);
+
+        //PUNTO B
+        let res_B = await studentsModel.find({}).sort({age: 1}).limit(1);
+        // console.log(res_B);
+
+        //PUNTO C
+        let res_C = await studentsModel.find({course: '2A'});
+        // console.log(res_C);
+
+        //PUNTO D
+        let res_D = await studentsModel.find({}).sort({age: 1}).limit(1).skip(1);
+        //console.log(res_D);
+
+        //PUNTO E
+        let res_E = await studentsModel.find({}, {name: 1, surname: 1, course: 1}).sort({surname: -1});
+        // console.log(res_E);
+
+        //PUNTO F
+        let res_F = await studentsModel.find({score: 10});
+        // console.log(res_F);
+
+         //PUNTO G
+        let res_G = await studentsModel.find({}, {score: 1, _id: 0});
+        let total_punto_g = res_G.reduce((prev, current)=>{
+            return prev + current.score
+        }, 0);
+        let prom_res_G = total_punto_g / res_G.length;
+        // console.log(prom_res_G);
+
+         //PUNTO H
+        let res_H = await studentsModel.find({course: '1A'}, {score: 1, _id: 0});
+        let total_punto_h = res_H.reduce((prev, current)=>{
+            return prev + current.score
+        }, 0);
+        let prom_res_H = total_punto_h / res_H.length;
+        // console.log(prom_res_H);
+    } catch (error) {
+        console.log(error)
+    }
+});
+
+// PUNTO 1 EJ 3
+
+(async ()=>{
+    try {
+        //PUNTO A
+        let res_A = await studentsModel.updateOne({name: 'Lucas'}, {dni: "20355875"});
+        //console.log(res_A);
+
+        //PUNTO B
+        let res_B = await studentsModel.updateMany({}, {login: false});
+        //console.log(res_B);
+
+        //PUNTO C
+        let res_C = await studentsModel.updateMany({course: '2A'}, {login: true});;
+        //console.log(res_C);
+
+        //PUNTO D
+        let res_D = await studentsModel.find({nota: {$gte: 4}}, {_id: 0, __v:0});
+        // console.log(res_D);
+
+        //PUNTO E
+        let res_E = await studentsModel.find({login:true}, {_id:0, __v:0});
+        // console.log(res_E);
+
+        //PUNTO F
+        let res_F = await studentsModel.deleteMany({ingreso:true});
+        // console.log(res_F);
+
+        //PUNTO G
+        let res_G = await studentsModel.find({}, {__v:0});
+        // console.log(res_G);
+
+        res_G.forEach(student => {
+            console.log(student, ' -> Creation Date', new Date(student._id.getTimestamp()));
+        });
+
+        // let fff = new Date()
+        // fff.getTimestamp().toLocaleString()
+
+         //PUNTO G
+        // let res_G = await studentsModel.find({}, {score: 1, _id: 0});
+        // let total_punto_g = res_G.reduce((prev, current)=>{
+        //     return prev + current.score
+        // }, 0);
+        // let prom_res_G = total_punto_g / res_G.length;
+        // console.log(prom_res_G);
+
+         //PUNTO H
+        let res_H = await studentsModel.find({course: '1A'}, {score: 1, _id: 0});
+        let total_punto_h = res_H.reduce((prev, current)=>{
+            return prev + current.score
+        }, 0);
+        let prom_res_H = total_punto_h / res_H.length;
+        // console.log(prom_res_H);
+    } catch (error) {
+        console.log(error)
+    }
+});
